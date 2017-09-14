@@ -180,13 +180,13 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
-  bootstrap-sass
+  bootstrap-sass (= 3.3.7)
   byebug
   coffee-rails (~> 4.2)
-  devise
-  font-awesome-sass
+  devise (= 4.3.0)
+  font-awesome-sass (= 4.7.0)
   jbuilder (~> 2.5)
-  jquery-rails
+  jquery-rails (= 4.3.1)
   listen (>= 3.0.5, < 3.2)
   pg (~> 0.18)
   puma (~> 3.7)
