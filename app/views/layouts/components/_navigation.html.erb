@@ -1,0 +1,34 @@
+<header class="header dark-bg">
+  <!--logo start-->
+  <a href="<%= root_path %>" class="logo">Chat<span class="lite">Rails<span class="club"></span></span></a>
+  <!--logo end-->
+
+  <div class="nav search-row" id="top_menu">
+    <!--  search form start -->
+    <ul class="nav top-menu">
+      <% if user_signed_in? %>
+        <li>
+          <%= link_to 'Home', root_path %>
+        </li>
+      <% end %>
+    </ul>
+    <!--  search form end -->
+  </div>
+  <div class="top-nav notification-row">
+    <!-- Notification drop down start-->
+    <ul class="nav pull-right top-menu">
+      <% if user_signed_in? %>
+        
+      <% else %>
+        <li>
+          <%= link_to 'Log In', new_user_session_path %>
+        </li>
+        <li>
+          <%= link_to 'Register Free', new_user_registration_path, class: 'btn btn-success btn-register btn-sm' %>
+        </li>
+      <% end %>
+    </ul>
+    <!-- Notification drop down end-->
+  </div>
+</header>
+<!--Header end-->

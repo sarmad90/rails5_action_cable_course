@@ -9,6 +9,23 @@
   </head>
 
   <body>
-    <%= yield %>
+    <section id="container">
+      <%= render 'layouts/components/navigation' %>
+
+      <!--main content start-->
+      <section id="main-content" >
+        <section class="wrapper">
+          <div class="container">
+            <div class="row">
+              <div class="col-md-8 col-md-offset-2">
+                <%= render 'layouts/components/alerts' %>
+                <%= yield %>
+              </div>
+            </div>
+          </div>
+        </section>
+      </section>
+      <!--main content end-->
+    </section>
   </body>
 </html>
