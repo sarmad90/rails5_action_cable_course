@@ -10,6 +10,9 @@
         <li>
           <%= link_to 'Home', root_path %>
         </li>
+        <li>
+          <%= link_to 'Dashboard', users_path %>
+        </li>
       <% end %>
     </ul>
     <!--  search form end -->
@@ -18,7 +21,7 @@
     <!-- Notification drop down start-->
     <ul class="nav pull-right top-menu">
       <% if user_signed_in? %>
-        
+        <%= render 'layouts/components/navigation_right' %>
       <% else %>
         <li>
           <%= link_to 'Log In', new_user_session_path %>

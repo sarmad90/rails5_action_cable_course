@@ -1,0 +1,22 @@
+<!-- User details drop down start-->
+<li class="dropdown user-profile">
+  <a data-toggle="dropdown" class="dropdown-toggle" href="#" class="">
+    <span class="profile-ava">
+      <%= image_tag "no_avatar.png", height: 32, width: 32 %>
+    </span>
+    <span class="username"><%= current_user.full_name %></span>
+    <b class="caret"></b>
+  </a>
+  <ul class="dropdown-menu extended logout">
+    <div class="log-arrow-up"></div>
+    <li class="eborder-top">
+      <a href="<%= user_path(current_user) %>"><i class="icon_profile"></i> My Profile</a>
+    </li>
+    <li>
+      <%= link_to destroy_user_session_path, method: :delete, class: 'log-out' do %>
+          <i class="icon_key_alt"></i> Log Out
+      <% end %>
+    </li>
+  </ul>
+</li>
+<!-- User details drop down end -->
