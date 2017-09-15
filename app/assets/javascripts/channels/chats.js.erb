@@ -1,0 +1,232 @@
+jQuery(document).on('turbolinks:load', function() {
+  if (App.cable.subscriptions.subscriptions.length > 0) {
+    App.cable.subscriptions.subscriptions.forEach(function(subscription){
+      App.cable.subscriptions.remove(subscription);
+    });
+  }
+
+  var messages, messages_to_bottom;
+  window.typingTimeout = null;
+  messages = $('#messages');
+  if (messages.length > 0) { // start
+
+    var newNotificationIcon = '/favicon-notification.ico';
+    var originalIcon = '/favicon.ico?v=2';
+    var notificationCount = 0;
+    var originalDocumentTitle = document.title;
+
+    Notification.requestPermission();
+
+    // Set the name of the hidden property and the change event for visibility
+    var hidden, visibilityChange;
+    if (typeof document.hidden !== "undefined") { // Opera 12.10 and Firefox 18 and later support
+      hidden = "hidden";
+      visibilityChange = "visibilitychange";
+    } else if (typeof document.msHidden !== "undefined") {
+      hidden = "msHidden";
+      visibilityChange = "msvisibilitychange";
+    } else if (typeof document.webkitHidden !== "undefined") {
+      hidden = "webkitHidden";
+      visibilityChange = "webkitvisibilitychange";
+    }
+
+    document.addEventListener('visibilitychange', function(){
+      if(!document[hidden]){
+        document.getElementById('favicon').href = originalIcon;
+        notificationCount = 0;
+        document.title = originalDocumentTitle;
+      };
+    });
+
+    if (typeof document[hidden] === "undefined") {
+      console.log("Your browser doesn't support the Page Visibility API. You may not be able to get push notifications when you're away from the page");
+    }
+
+    messages_to_bottom = function() {
+      return $(".chat-container").scrollTop($(".chat-container").prop('scrollHeight'));
+    };
+
+    render_message = function(message) {
+      if(is_message_owner(message.username)){
+        return myMessage(message);
+      } else {
+        return otherMessage(message);
+      }
+    };
+
+    showTyping = function () {
+      $(".chat-container").animate({
+        scrollTop: $("#messages").height()
+      }, 1400);
+      $('#typing').show();
+    }
+
+    hideTyping = function () {
+      window.typingTimeout = setTimeout(function(){
+        $('#typing').hide();
+      }, 3000)
+    };
+
+    hideTypingNow = function() {
+      clearTimeout(window.typingTimeout);
+      $('#typing').hide();
+    };
+
+    showRecipientStatusChangeNotification = function(data) {
+      var statusMessage = data.online ? " has appeared online in your chat." : " has disappeared from your chat.";
+      var notification = new Notification(data.email + statusMessage);
+    };
+
+    showMessageNotificaiton = function(data) {
+      document.getElementById('favicon').href = newNotificationIcon;
+      var notification = new Notification(data.message.email + ": " + data.message.body);
+    };
+
+    showNotificationCountInTitle = function(){
+      notificationCount += 1;
+      document.title = originalDocumentTitle + " (" + notificationCount + ")";
+    };
+
+    is_message_owner = function(email) {
+      return (messages.data('email') === email);
+    };
+
+    updateRecipientStatus = function(data) {
+      // Current Person Status
+      if(data.online){
+        $('#p' + data.user_id).removeClass('offline');
+        $('#p' + data.user_id).addClass('online');
+      } else {
+        $('#p' + data.user_id).removeClass('online');
+        $('#p' + data.user_id).addClass('offline');
+      }
+
+      // Other Participants Status
+      if(data.other_participants_online) {
+        var target, user_id, status;
+        target = data.other_participants_online;
+        for (var k in target){
+          if (target.hasOwnProperty(k)) {
+            person_id = k;
+            status    = target[k];
+            if(status) {
+              $('#p' + person_id).removeClass('offline');
+              $('#p' + person_id).addClass('online');
+            } else {
+              $('#p' + person_id).removeClass('online');
+              $('#p' + person_id).addClass('offline');
+            }
+          }
+        }
+      }
+
+    };
+
+    myMessage = function(message) {
+      str = '<li class="by-me">';
+      str += '<div class="avatar pull-left">';
+      str += '<%= image_tag "no_avatar.png", height: 32, width: 32 %>';
+      str += '</div>';
+      str += '<div class="chat-content">';
+      str += '<div class="chat-meta">' + message.email + '<span class="pull-right">' + message.timestamp + '</span></div>';
+      str += message.body;
+      str += '<div class="clearfix"></div>';
+      str += '</div>';
+      str += '</li>';
+      return str;
+    };
+
+    otherMessage = function(message) {
+      str = '<li class="by-other" data-email="'+ message.email +'">';
+      str += '<div class="avatar pull-right">';
+      str += '<%= image_tag "no_avatar.png", height: 32, width: 32 %>';
+      str += '</div>';
+      str += '<div class="chat-content">';
+      str += '<div class="chat-meta">' + message.timestamp + ' <span class="pull-right">' + message.email + '</span></div>';
+      str += message.body;
+      str += '<div class="clearfix"></div>';
+      str += '</div>';
+      str += '</li>';
+      return str;
+    };
+    messages.html('');
+    renderMessages();
+    messages_to_bottom();
+    App.global_chat = App.cable.subscriptions.create({
+      channel: 'ChatsChannel',
+      chat_id: messages.data('chat-id')
+    }, {
+      connected: function() {
+        Layout.showBootstrapNotifications('<strong>Connected!</strong>', 'You are now active in this chat.');
+        $('#send-message').prop('disabled', false);
+      },
+      disconnected: function() {
+        Layout.showBootstrapNotifications('<strong>Oh snap!</strong>', 'You are disconnected, sit tight while we try to reconnect you.', 'danger');
+        $('#send-message').prop('disabled', true);
+      },
+      rejected: function() {
+        return alert('Rejected Connection');
+      },
+      received: function(data) {
+        if(data.user_id){
+          updateRecipientStatus(data);
+          if (!is_message_owner(data.email) && document[hidden]) {
+            showRecipientStatusChangeNotification(data);
+          }
+        }
+        if(data.message){
+          messages.append(render_message(data['message']));
+          messages_to_bottom();
+          if (document[hidden]) {
+            showNotificationCountInTitle();
+            showMessageNotificaiton(data);
+          }
+          hideTypingNow();
+        }
+        if(data.typing_participants) {
+          if(!is_message_owner(data.typing_participants.current_participant_email)){
+            if(!$('#typing').is(':visible')) {
+              showTyping();
+              hideTyping();
+            }
+          }
+        }
+      },
+
+      send_message: function(message, chat_id) {
+        return this.perform('send_message', {
+          message: message,
+          chat_id: chat_id
+        });
+      },
+      typing: function(chat_id) {
+        return this.perform('typing', { chat_id: chat_id });
+      }
+    });
+
+    $('#new_message').submit(function(e) {
+      var $this, textarea, noMessageText = $('#no-messages');
+      $this = $(this);
+      textarea = $this.find('#message_body');
+      if(noMessageText.length) {
+        noMessageText.remove();
+      }
+      if ($.trim(textarea.val()).length > 0) {
+        App.global_chat.send_message(textarea.val(), messages.data('chat-id'));
+        textarea.val('');
+      }
+      e.preventDefault();
+      return false;
+    });
+
+    $('#message_body').keypress(function (e) {
+      if (e.which == 13) {
+        $('#new_message').submit();
+        return false;
+      } else {
+        App.global_chat.typing(messages.data('chat-id'));
+      }
+    });
+
+  } // end
+});

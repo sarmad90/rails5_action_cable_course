@@ -1,0 +1,16 @@
+var messages = $("#messages");
+var loadMoreLink = $('#load-more-link').find('a');
+<% if @messages.present? %>
+  <% @messages.each do |message| %>
+    if(is_message_owner('<%= message.user.email %>')){
+      messages.prepend(myMessage(<%=raw(message.json_for_client) %>));
+    } else {
+      messages.prepend(otherMessage(<%= raw(message.json_for_client) %>));
+    }
+  <% end %>
+  loadMoreLink.prop('href', '<%= load_more_chat_path(page: (params[:page].to_i + 1)) %>');
+<% end %>
+
+<% unless @messages.next_record? %>
+  loadMoreLink.parent().hide();
+<% end %>

@@ -12,3 +12,52 @@
 @import 'theme/line-icons';
 @import 'theme/style-responsive';
 @import 'theme/style';
+
+.dot {
+	border-radius: 50%;
+	width: 12px;
+	height: 12px;
+  display: inline-block;
+	/* width and height can be anything, as long as they're equal */
+}
+
+.online {
+  background-color: #4cd964;
+}
+
+.offline {
+  background-color: #ff2d55;
+}
+
+.chat-container {
+	max-height: 430px;
+	overflow-y: scroll;
+  padding-top: 10px;
+}
+
+.chat-connectivity-status {
+	position: fixed;
+	z-index: 1002;
+	left: 20%;
+  right: 20%;
+	top: 70px;
+}
+
+#send-message {
+ margin-top: 17px;
+}
+
+#typing {
+  width: 0px;
+  height: auto;
+  margin-bottom: 25px;
+}
+
+#load-more-link {
+  text-align: center;
+  margin: 10px 0px;
+}
+
+.chat-textarea {
+  resize: vertical;
+}

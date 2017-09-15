@@ -1,1 +1,2 @@
 <h2><%= @user.email %></h2>
+<%= link_to 'Chat', start_chats_path(@user.id), class: 'btn btn-primary' unless @user == current_user %>

@@ -1,0 +1,72 @@
+<div class="row">
+  <div class="col-md-1"><%= back_link %></div>
+  <div class="col-md-12">
+    <div class="row">
+      <div class="col-md-12"><h1><%= @chat.title %></h1></div>
+    </div>
+    <!-- extract this out to partial !-->
+    <div class="row">
+      <div class="col-md-12">
+        <b> Participant(s): </b>
+        <% if @recipients.present? %>
+            <%= @recipients.map do |recipient| %>
+                <% "<div id='p#{recipient.id}' class='dot'></div> #{recipient.email}" %>
+            <% end.join(', ').html_safe %>
+        <% else %>
+          There are no Participants in this Chat Room.
+        <% end %>
+      </div>
+    </div>
+    <!-- extract this out to partial !-->
+
+    <div class="padd well sscroll chat-container">
+      <% if @messages.count >= 5 %>
+          <div id="load-more-link">
+            <%= link_to 'Load more', load_more_chat_path(page: 1), remote: true, class: 'btn btn-primary' %>
+          </div>
+      <% end %>
+      <ul class="chats" id="messages" data-chat-id="<%= @chat.id %>" data-email="<%= current_user.email %>">
+        <!-- messages will render here !-->
+      </ul>
+      <div class='uil-ellipsis-css hide-content typing-container' id="typing" style='transform:scale(0.2);'>
+        <div class="ib">
+          <div class="circle"><div></div></div>
+          <div class="circle"><div></div></div>
+          <div class="circle"><div></div></div>
+          <div class="circle"><div></div></div>
+        </div>
+      </div>
+    </div>
+    <%= form_for @message, url: '#' do |f| %>
+        <div class="row">
+          <div class="col-md-10">
+            <%= f.label :body, 'Message' %>
+            <%= f.text_area :body, class: 'form-control chat-textarea', rows: 1 %>
+            <small class="text-muted">From 1 to 1000 characters</small>
+          </div>
+          <div class="col-md-2">
+            <%= f.submit 'Send', class: 'btn btn-primary btn-lg', id: 'send-message' %>
+          </div>
+        </div>
+    <% end %>
+  </div>
+</div>
+
+<!-- render messages on client side !-->
+<script>
+  function renderMessages() {
+    var messages = $("#messages");
+    <% if @messages.present? %>
+      //render messages
+      <% @messages.each do |message| %>
+      if(is_message_owner('<%= message.user.email %>')){
+        messages.append(myMessage(<%=raw(message.json_for_client) %>));
+      } else {
+        messages.append(otherMessage(<%= raw(message.json_for_client) %>));
+      }
+      <% end %>
+    <% else %>
+      messages.html("<li id='no-messages'> <h4>No Messages! Be first to chat with your participant(s).</h4> </li>");
+    <% end %>
+  }
+</script>
