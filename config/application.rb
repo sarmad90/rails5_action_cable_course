@@ -25,7 +25,13 @@ module ActioncableCourse
     # Application configuration should go into files in config/initializers
     # -- all .rb files in that directory are automatically loaded.
 
-    # Don't generate system test files.
-    config.generators.system_tests = nil
+    Rails.application.config.after_initialize do
+      redis = Redis.new
+      redis.keys('user*online').each do |key|
+        redis.del(key)
+      end
+      redis.quit
+    end
+
   end
 end

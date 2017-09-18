@@ -44,7 +44,7 @@ class User < ApplicationRecord
   end
 
   def online?
-    result = redis.get("person_#{id}_online")
+    result = redis.get("user_#{id}_online")
     redis.quit
     result ? true : false
   end
